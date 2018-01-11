@@ -1,0 +1,415 @@
+---
+title: "BTW17 - Sozio-demographische Analyse"
+output:
+  html_notebook:
+    code_folding: hide
+    theme: spacelab
+    toc: true
+    toc_float: true
+    number_sections: true
+  html_document: default
+---
+```{r setup}
+needs(tidyverse, skimr, ggbeeswarm, ggjoy, stringr)
+
+knitr::opts_chunk$set(fig.width = 9,
+					  fig.height = 5,
+					  warning = FALSE, 
+					  message = FALSE)
+```
+<style>
+  h1 { margin-top: 30px; }
+  h2 { margin-top: 60px; font-weight: bold; }
+</style>
+
+
+
+<!-- read in training data for BTW13 -->
+<!-- using Gregor's cleaned version to get started quickly -->
+```{r include = F}
+btw13_strukturdaten = read_delim("./data_training/btw13_strukturdaten.csv", 
+    "\t", escape_double = FALSE, trim_ws = TRUE) %>%
+	# filtering out aggregates
+	filter(Nr < 300)
+
+btw13_ergebnis = read_delim("./data_training/btw13_kerg.csv", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+
+<!-- clean data, calculate majorities for coalitions and join demographic data to results -->
+```{r}
+btw13_ergebnis = btw13_ergebnis %>% 
+	select(Nr, 
+		   Wahlkreis,
+		   Land, 
+		   Wahlberechtigte = Wahlberechtigte.Erststimmen, 
+		   Wähler = Wähler.Erststimmen,
+		   Ungültig = Ungültige.Zweitstimmen,
+		   Gültig = Gültige.Zweitstimmen,
+		   CDU = CDU.Zweitstimmen,
+		   SPD = SPD.Zweitstimmen,
+		   FDP = FDP.Zweitstimmen,
+		   LINKE = `DIE LINKE.Zweitstimmen`,
+		   GRÜNE = GRÜNE.Zweitstimmen,
+		   CSU = CSU.Zweitstimmen,
+		   NPD = NPD.Zweitstimmen,
+		   AFD = AfD.Zweitstimmen) %>% 
+	# wo haben welche Koalitionen eine mehrheit
+	mutate(koal_groko = ifelse(coalesce(CDU,CSU) + SPD >= Gültig/2, T, F)) %>% 
+	mutate(koal_sgelb = ifelse(coalesce(CDU,CSU) + FDP >= Gültig/2, T, F)) %>% 
+	mutate(koal_sgrün = ifelse(coalesce(CDU,CSU) + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(koal_rrg = ifelse(SPD + LINKE + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(koal_jamaika = ifelse(coalesce(CDU,CSU) + FDP + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(koal_rg = ifelse(SPD + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(winner = ifelse(coalesce(CDU,CSU) > SPD, "Union", "SPD"))
+
+btw13_join = left_join(btw13_ergebnis, btw13_strukturdaten, by="Nr")
+```
+
+
+
+# Übersicht
+- **Welche Bevölkerungsgruppen haben Merkel/Schulz gewählt?**  
+- **In welchen Gruppen hat Partei XY besonders gut / besonders schlecht abgeschnitten?**
+- **Bei wam hat Partei XY besonders stark gewonnen/verloren**
+<br>
+
+
+Welche sozio-demographischen Faktoren uns aus den Veröffentlichungen des Bundeswahlleiters auf Wahlkreisebene zur Verfügung stehen:
+```{r}
+colnames(btw13_strukturdaten)
+```
+<br>
+
+
+
+# Wo Union bzw. SPD gewonnen haben
+Die Sozio-Demographie der Landkreisen in denen Union, respektive SPD stärker waren
+
+## Violin-Plot
+```{r fig.asp=0.5}
+SPON_colors = c(Union = '#000000', SPD = '#E2001A', LINKE = '#8837C1', GRÜNE = '#329A07', FDP = "#FEC803", AFD = "#1295FF", alle_Wahlkreise = "#bbbbbb")
+
+btw13_join %>%
+    ggplot(aes(winner, Arbeitslosenquote, fill = winner)) +
+    geom_violin(adjust = 0.5, color='#555555', size = 0.3, draw_quantiles = 0.5, trim = F) +
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	scale_y_continuous(labels = scales::unit_format("%")) + 
+	labs(title = "Die Arbeitslosenquote in Wahlkreisen in denen Union/SPD stärker waren", x="") + 
+    coord_flip() +
+	theme_minimal()
+```
+
+## Density-Plot
+```{r fig.asp=0.5}
+btw13_join %>%
+    ggplot(aes(Arbeitslosenquote, fill = winner)) +
+    geom_density(bw = 0.5, color = FALSE, alpha = 0.8) +
+	scale_fill_manual(values = SPON_colors) +
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	labs(title = "Die Arbeitslosenquote in Wahlkreisen in denen Union/SPD stärker waren", y="") + 
+	theme_minimal()
+```
+
+## Quasirandom-Plot (2 Optionen)
+```{r fig.asp=0.5}
+btw13_join %>%
+    ggplot(aes(Arbeitslosenquote, winner, color = winner)) +
+	geom_quasirandom(varwidth = TRUE, size = 4, alpha = 0.3) +
+	scale_color_manual(values = SPON_colors) +
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	labs(title = "Die Arbeitslosenquote in Wahlkreisen in denen Union/SPD stärker waren", y="") + 
+	theme_minimal()
+
+btw13_join %>%
+    ggplot(aes(Arbeitslosenquote, winner, color = winner)) +
+	geom_quasirandom(varwidth = TRUE, size = 2) +
+	scale_color_manual(values = SPON_colors) +
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	labs(title = "Die Arbeitslosenquote in Wahlkreisen in denen Union/SPD stärker waren", y="") + 
+	theme_minimal()
+```
+
+## Kombi Density + Quasirandom
+```{r}
+btw13_join %>%
+    ggplot(aes(winner, Arbeitslosenquote, fill = winner, color = winner)) +
+    geom_violin(adjust = 0.5, color='#555555', size = 0.3, draw_quantiles = 0.5, trim = FALSE, alpha = 0.8) +
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	scale_y_continuous(labels = scales::unit_format("%")) + 
+	labs(title = "Die Arbeitslosenquote in Wahlkreisen in denen Union/SPD stärker waren", x="") + 
+    coord_flip() +
+	theme_minimal() +
+	geom_quasirandom(shape = 21, show.legend = F, color = "#FFFFFF", stroke = 0.4, size = 2.5) +
+	scale_color_manual(values = SPON_colors)
+```
+
+## Joy-Plot
+```{r fig.asp = 0.4}
+btw13_join %>%
+	ggplot(aes(Arbeitslosenquote, winner, height = ..density.., fill = winner)) +
+	geom_joy(scale = 0.7) + 
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	labs(title = "Die Arbeitslosenquote in Wahlkreisen in denen Union/SPD stärker waren", y="") + 
+	theme_minimal() 
+```
+
+
+## Serie aus Violin Plots
+```{r fig.asp = 1}
+btw_13_long_winner = btw13_join %>% 
+	select(-Wahlkreis.y) %>% 
+	gather("Kategorie", "Wert", 23:61) %>% 
+	mutate(Wert = as.numeric(Wert))
+
+
+btw_13_long_winner %>%
+	filter (Kategorie %in% c("Arbeitslosenquote", "Alter.75plus", "Bevölkerungsdichte", "Mit.Hochschulreife")) %>% 
+    ggplot(aes(winner, Wert, fill = winner)) +
+    geom_violin(adjust = 0.5, color='#555555', size = 0.3, draw_quantiles = 0.5, trim = F) +
+	scale_fill_manual(values = SPON_colors, guide = FALSE) +
+    coord_flip() +
+	theme_minimal() +
+	facet_wrap(~ Kategorie, scales = "free", ncol = 1)
+```
+
+## Serie aus Joy Plots
+```{r fig.asp = 1, message = F, warning = F}
+btw_13_long_winner %>%
+	filter (Kategorie %in% c("Arbeitslosenquote", "Alter.75plus", "Bevölkerungsdichte", "Mit.Hochschulreife")) %>% 
+	ggplot(aes(Wert, winner, height = ..density.., fill = winner)) +
+	geom_joy(scale = 0.7) + 
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	theme_minimal() +
+	facet_wrap(~ Kategorie, scales = "free", ncol = 1)
+```
+
+Prolem dieser Darstellungsform:
+Die Zahl der Datenpunkte, die zur Flächenberechnung herangezogen wird ist deutlich unterschiedlich verteilt: `r btw13_join %>% count(winner)`
+Und laut aktuellen Umfragen wird das dieses Jahr für die SPD nicht besser...
+Alternativer Vorschlag um diesen Effekt zu vermieden und um auch die anderen Parteien mitzunehmen:
+
+# Wo Partei XY besonders stark war
+Die Sozio-Demographie der Landkreisen in denen Partei XY besonders stark abgeschnitten hat
+In dieser Darstellung zeigen wir die sozio-demographische Struktur derjenigen Wahlkreise, in denen Partei XY am stärksten abgeschnitten hat (oberes Drittel des Zweitstimmenanteils)
+
+```{r fig.asp = 2, message = F, warning = F}
+btw_13_long_anteil = btw13_join %>% 
+	# calculate tertile membership for each party
+	mutate(SPD_position = ntile(SPD / Gültig, 3)) %>% 
+	mutate(Union_position = ntile(coalesce(CDU,CSU) / Gültig, 3)) %>% 
+	mutate(FDP_position = ntile(FDP / Gültig, 3)) %>% 
+	mutate(GRÜNE_position = ntile(GRÜNE / Gültig, 3)) %>% 
+	mutate(LINKE_position = ntile(LINKE / Gültig, 3)) %>% 
+	mutate(AFD_position = ntile(AFD / Gültig, 3)) %>%
+	gather("Partei", "Tertile", 63:68) %>% 
+	filter(Tertile == 3) %>% 
+	mutate(Partei = str_replace(Partei, "_position", "")) %>% 
+	select(-Tertile, -Wahlkreis.y, -starts_with("KOAL"), -winner) %>% 
+	gather("Kategorie", "Wert", 16:54) %>% 
+	mutate(Wert = as.numeric(Wert))
+	
+btw_13_long_anteil %>%
+	filter (Kategorie %in% c("Arbeitslosenquote", "Alter.75plus", "Bevölkerungsdichte", "Mit.Hochschulreife")) %>%
+	ggplot(aes(Wert, Partei, height = ..density.., fill = Partei)) +
+	geom_joy(scale = 2, alpha = 0.9) +
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	theme_minimal() +
+	facet_wrap(~ Kategorie, scales = "free", ncol = 1)
+
+######## Violin plots
+# btw_13_long_anteil %>%
+# 	filter (Kategorie %in% c("Arbeitslosenquote", "Alter.75plus", "Bevölkerungsdichte", "Mit.Hochschulreife")) %>% 
+#     ggplot(aes(Partei, Wert, fill = Partei)) +
+#     geom_violin(adjust = 0.5, color='#555555', size = 0.3, draw_quantiles = 0.5, trim = F) +
+# 	scale_fill_manual(values = SPON_colors, guide = FALSE) +
+#     coord_flip() +
+# 	theme_minimal() +
+# 	facet_wrap(~ Kategorie, scales = "free", ncol = 1)
+```
+
+## Verschiedene Schwellenwerte ausprobieren
+Die Wahlkreise mit den besten 20/25/33/50% der Ergebnisse
+```{r fig.asp = 0.5}
+joy_plot = function(ntile){
+	btw13_join %>% 
+	# calculate tertile membership for each party
+	mutate(SPD_position = ntile(SPD / Gültig, ntile)) %>% 
+	mutate(Union_position = ntile(coalesce(CDU,CSU) / Gültig, ntile)) %>% 
+	mutate(FDP_position = ntile(FDP / Gültig, ntile)) %>% 
+	mutate(GRÜNE_position = ntile(GRÜNE / Gültig, ntile)) %>% 
+	mutate(LINKE_position = ntile(LINKE / Gültig, ntile)) %>% 
+	mutate(AFD_position = ntile(AFD / Gültig, ntile)) %>%
+	mutate(alle_Wahlkreise_position = ntile) %>% 
+	gather("Partei", "Tertile", 63:69) %>% 
+	filter(Tertile == ntile) %>% 
+	mutate(Partei = str_replace(Partei, "_position", "")) %>% 
+	select(-Tertile, -Wahlkreis.y, -starts_with("KOAL"), -winner) %>% 
+	gather("Kategorie", "Wert", 16:54) %>% 
+	mutate(Wert = ifelse((Wert == "–"), NA, Wert)) %>% 
+	mutate(Wert = as.numeric(Wert)) %>% 
+	filter(Kategorie == "Arbeitslosenquote") %>%
+	ggplot(aes(Wert, Partei, height = ..density.., fill = Partei)) +
+	geom_joy(scale = 2.5, alpha = 0.9, na.rm = T) + 
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	labs(title = "Die Arbeitslosenquote in den Partei-Hochburgen*",
+		 subtitle = paste0("*gemessen an den oberen ", round(100/ntile,1), " % aller Wahlkreise nach Zweitstimmeneanteil"), 
+		 y="", x = "Arbeitslosenquote") + 
+	theme_minimal() +
+	# TODO: find out how to change fonds globally
+	# theme(text = element_text(family = "SpiegelSans Regular"))
+	 theme(text = element_text(family="SpiegelSans Regular"),
+	 	  plot.title = element_text(family="SpiegelHeadline", size=20))
+}
+joy_plot(2)
+joy_plot(3)
+joy_plot(4)
+joy_plot(5)
+```
+
+# Veränderung gegenüber der letzten Wahl
+```{r message = F, warning = F}
+btw09_ergebnis = read_delim("./data_training/btw09_kerg.csv", 
+    "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
+	select(Nr, 
+		   Wahlkreis,
+		   Land, 
+		   Wahlberechtigte = Wahlberechtigte.Erststimmen, 
+		   Wähler = Wähler.Erststimmen,
+		   Ungültig = Ungültige.Zweitstimmen,
+		   Gültig = Gültige.Zweitstimmen,
+		   CDU = CDU.Zweitstimmen,
+		   SPD = SPD.Zweitstimmen,
+		   FDP = FDP.Zweitstimmen,
+		   LINKE = `DIE LINKE.Zweitstimmen`,
+		   GRÜNE = GRÜNE.Zweitstimmen,
+		   CSU = CSU.Zweitstimmen,
+		   NPD = NPD.Zweitstimmen) %>% 
+	# wo haben welche Koalitionen eine Mehrheit
+	mutate(koal_groko = ifelse(coalesce(CDU,CSU) + SPD >= Gültig/2, T, F)) %>% 
+	mutate(koal_sgelb = ifelse(coalesce(CDU,CSU) + FDP >= Gültig/2, T, F)) %>% 
+	mutate(koal_sgrün = ifelse(coalesce(CDU,CSU) + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(koal_rrg = ifelse(SPD + LINKE + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(koal_jamaika = ifelse(coalesce(CDU,CSU) + FDP + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(koal_rg = ifelse(SPD + GRÜNE >= Gültig/2, T, F)) %>% 
+	mutate(winner = ifelse(coalesce(CDU,CSU) > SPD, "Union", "SPD"))
+
+btw09_join = left_join(btw09_ergebnis, btw13_strukturdaten, by="Nr")
+
+btw_09_long_anteil = btw09_join %>% 
+	# calculate tertile membership for each party
+	mutate(SPD_position = ntile(SPD / Gültig, 3)) %>% 
+	mutate(Union_position = ntile(coalesce(CDU,CSU) / Gültig, 3)) %>% 
+	mutate(FDP_position = ntile(FDP / Gültig, 3)) %>% 
+	mutate(GRÜNE_position = ntile(GRÜNE / Gültig, 3)) %>% 
+	mutate(LINKE_position = ntile(LINKE / Gültig, 3)) %>% 
+	gather("Partei", "Tertile", 62:66) %>% 
+	filter(Tertile == 3) %>% 
+	mutate(Partei = str_replace(Partei, "_position", "")) %>% 
+	select(-Tertile, -Wahlkreis.y, -starts_with("KOAL"), -winner) %>% 
+	gather("Kategorie", "Wert", 15:53) %>% 
+	mutate(Wert = as.numeric(Wert))
+	
+btw_0913 = rbind(
+	btw_13_long_anteil %>%
+	filter (Kategorie %in% c("Arbeitslosenquote", "Alter.75plus", "Bevölkerungsdichte", "Mit.Hochschulreife")) %>% 
+	select(-AFD) %>%
+	mutate(year = "2013"), 
+	btw_09_long_anteil %>%
+	filter (Kategorie %in% c("Arbeitslosenquote", "Alter.75plus", "Bevölkerungsdichte", "Mit.Hochschulreife")) %>%
+	mutate(year = "2009"))
+```
+
+## Joy Plot
+```{r fig.asp = 1, message = F, warning = F}
+btw_0913 %>%
+	filter(Kategorie == "Arbeitslosenquote" & Partei %in% c("FDP", "GRÜNE", "LINKE")) %>%
+	ggplot(aes(Wert, year, height = ..density.., fill = Partei)) +
+	geom_joy(scale = 2.3, alpha = 0.9) + 
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	facet_wrap(~ Partei, scales = "free_y", ncol = 1) +
+	theme_minimal()
+```
+
+
+
+## Density Plot
+```{r fig.asp = 2}
+btw_0913 %>%
+	spread(year, Wert) %>% 
+	mutate(Wert_2009 = `2009`) %>% 
+	mutate(Wert_2013 = `2013`) %>% 
+	filter(Kategorie == "Arbeitslosenquote") %>%
+    ggplot() +
+    geom_density(aes(x = Wert_2013, fill = Partei), color = FALSE, alpha = 0.8, na.rm = T) +
+	geom_density(aes(x = Wert_2009, fill = F), color = "#000000", size = 0.5, linetype = "dashed", na.rm = T) +
+	scale_fill_manual(values = SPON_colors, guide=FALSE) +
+	labs(title = "Die Arbeitslosenquote in den Hochburgen 2013 im Vergleich zu 2009", 
+		 y = "", x = "Arbeitslosenquote") + 
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	facet_wrap(~ Partei, ncol = 1, scales = "free_x") +
+	theme_minimal()
+```
+
+
+
+## Scatterplot
+```{r}
+btw_13_anteile = btw13_join %>% 
+	mutate(Union_2013 = coalesce(CDU,CSU) / Gültig) %>% 
+	mutate(SPD_2013 = SPD / Gültig) %>% 
+	mutate(FDP_2013 = FDP / Gültig) %>% 
+	mutate(LINKE_2013 = LINKE / Gültig) %>% 
+	mutate(GRÜNE_2013 = GRÜNE / Gültig) %>% 
+	select(Nr, Wahlkreis.x, ends_with("_2013"), "Arbeitslosenquote", "Alter.75plus", "Bevölkerungsdichte", "Mit.Hochschulreife" )
+
+btw_09_anteile = btw09_join %>% 
+	mutate(Union_2009 = coalesce(CDU,CSU) / Gültig) %>% 
+	mutate(SPD_2009 = SPD / Gültig) %>% 
+	mutate(FDP_2009 = FDP / Gültig) %>% 
+	mutate(LINKE_2009 = LINKE / Gültig) %>% 
+	mutate(GRÜNE_2009 = GRÜNE / Gültig) %>% 
+	select(Nr, Wahlkreis.x, ends_with("_2009"))
+
+btw_0913_veränderung = left_join(btw_13_anteile, btw_09_anteile, by = "Nr")
+rm(btw_09_anteile, btw_13_anteile)
+
+ggplot(btw_0913_veränderung, aes(x = Arbeitslosenquote)) +
+	geom_point(aes(y = SPD_2009, color = '#E2001A', alpha = 0.1)) +
+	geom_point(aes(y = SPD_2013, color = '#E2001A', alpha = 1)) +
+	geom_linerange(aes(ymin = SPD_2009, ymax = SPD_2013), alpha = 0.2)
+```
+
+
+
+
+
+
+# Korrelation zwischen Sozio-demographishen Faktoren und dem Wahlverhalten?
+## Scatterplots Arbeitslosigkeit 2013
+```{r fig.asp = 2}
+btw13_join %>% 
+	mutate(anteil_Union = coalesce(CDU,CSU) / Gültig) %>% 
+	mutate(anteil_SPD = SPD / Gültig) %>% 
+	mutate(anteil_FDP = FDP / Gültig) %>% 
+	mutate(anteil_LINKE = LINKE / Gültig) %>% 
+	mutate(anteil_GRÜNE = GRÜNE / Gültig) %>% 
+	mutate(anteil_AFD = AFD / Gültig) %>%
+	gather("Partei", "Anteil", 63:68) %>% 
+	mutate(Partei = str_replace(Partei, "anteil_", "")) %>% 
+	ggplot(aes(Arbeitslosenquote, Anteil, color = Partei)) +
+	scale_color_manual(values = SPON_colors) +
+	scale_x_continuous(labels = scales::unit_format("%")) + 
+	geom_point(size = 2.5, show.legend = F) +
+	geom_smooth(level = 0.95, colour = "black", size = 0.3) +
+	facet_grid(Partei ~ ., scales = "free") + 
+	theme_minimal()
+```
+
+
+Next: Korrelationen ermitteln?
+Faktoren anhand Forschungsergebnisse auswählen?
+
