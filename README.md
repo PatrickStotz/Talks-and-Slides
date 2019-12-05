@@ -1,6 +1,61 @@
 # Talks and Slides
 This repository contains presentations and material from talks I've held.
 
+## 2019
+### Best of Datenjournalismus - Wie viele Todesfälle ließen sich durch die Einführung eines Autobahn-Tempolimits verhindern?  
+[Wissenswerte 2019](https://wissenswerte-bremen.de/) - Bremen 25.11.2019  
+[Slides(google)](https://tiny.cc/ddj_tempo)
+
+### Nerds in Disguise - How to structure and share your data driven investigation  
+[GIJC 2019](https://gijc2019.org/) - Hamburg 28.9.2019  
+[Slides(pdf)](https://www.dropbox.com/s/jvh1lyj2waec3vw/GIJC2019%20-%20Nerds%20in%20Disguise.pdf?dl=0)
+
+### Crowdsourcing The Credit Scores: Algorithmic Accountability
+[GIJC 2019](https://gijc2019.org/) - Hamburg 27.9.2019  
+[Slides(pdf)](https://tiny.cc/GIJC_Schufa)
+
+### Mehr als nur MapPorn - Das Potenzial räumlicher Analysen im Datenjournalismus nutzen
+[SciCar 2019](https://www.scicar.de/) - Dortmund 11.9.2019  
+[Slides(google)](https://docs.google.com/presentation/d/10tfd-XuQP8zAKlNTbP-k5qDWQQWJYJReM2_b0GEtYs8/edit?usp=sharing)
+
+### Modellrechnungen im Datenjournalismus - eine unterschätzte Methode?
+[SciCar 2019](https://www.scicar.de/) - Dortmund 10.9.2019  
+[Slides(google)](https://docs.google.com/presentation/d/1MsMRpL54BdLcuieg_WQ8uwjQnFLCh_uT3K6A2Y1uBtU/edit?usp=sharing)
+
+### Zwei Redaktionen ein Datensatz - Werkstattbericht Blackbox Schufa
+[SciCar 2019](https://www.scicar.de/) - Dortmund 9.9.2019  
+[Slides(google)](https://docs.google.com/presentation/d/1uFInb7rFkwDX4702vOOMNCSOGvslAmgLuw7yqqNoIpg/edit?usp=sharing)
+
+### Sensible Daten - Überprüfbarkeit sensibler datenjournalistischer Recherchen
+[Netzwerk Recherche 2019](https://netzwerkrecherche.org/termine/konferenzen/jahreskonferenzen/nr-jahreskonferenz-2019/) - Hamburg 14.5.2019  
+[Slides(google)](https://docs.google.com/presentation/d/1KQly2uVkEuX-PNMJdiM4P6BpNYdKaKmttkakpefoqgU/edit?usp=sharing)
+
+### Quick but not dirty - wer hat den besten Datenjournalismus mit den schnellsten Methoden?
+[Netzwerk Recherche 2019](https://netzwerkrecherche.org/termine/konferenzen/jahreskonferenzen/nr-jahreskonferenz-2019/) -Hamburg 14.5.2019  
+[Slides(google)](https://docs.google.com/presentation/d/1xr_Jy2oxDDi9KlQ7kLDJZCCEEMSFt2UY-pmDbzaJprQ/edit?usp=sharing), [youtube](https://www.youtube.com/watch?v=qDv0WEggdNo)
+
+### Openschufa - die Resultate
+[Republica 2019](https://19.re-publica.com/en) - Berlin 7.5.2019  
+[Slides(google)](https://docs.google.com/presentation/d/1k08jQfZpO0A80zsh7PZqJISm4NPcw6oRsah2AlqejhA/edit?usp=sharing), [youtube](https://www.youtube.com/watch?v=RHD8KWoMM9k)
+
+### Datenvisualisierungen: Mehr als nur schön und bunt
+[Storyday 2019](http://www.storyday.de/) - Hamburg 8.2.2019  
+[Slides(google)](https://docs.google.com/presentation/d/1rRsZJVgGkF1oyiPMbBhxOGBdOmDmIJ6PG-n0Fo6VgKY/edit?usp=sharing)
+
+
+## 2018
+### Grafiken und Daten als Chance für mehr Glaubwürdigkeit
+Kundenworkshop dpa-infografik - Berlin 9.9.2018  
+[Slides(google)](https://docs.google.com/presentation/d/1FKe_0ARKosl5OKawzrag7dgRdiTiidMtDG8HcmCGwr8/edit?usp=sharing)
+
+### Komplex versus verständlich - alternative Blickwinkel von Journalisten und Wissenschaftlern auf Datensätze am Beispiel von SPON-Recherchen zu Wahlergebnissen und Parlamentariern
+[SciCar 2018](https://www.scicar.de/) - Dortmund 25.9.2018  
+
+### Workshop: Karten bauen — Erste Schritte mit Geodaten und Karten
+[Netzwerk Recherche 2018](https://netzwerkrecherche.org/termine/konferenzen/jahreskonferenzen/nr-jahreskonferenz-2018/) - Hamburg 29.6.2018  
+[Workshop-Dokumentation](https://github.com/PatrickStotz/mapping_101)
+
+
 ## 2017
 ### A more structured approach to data journalism through the usage of R Notebooks
 [R Usergroup Meetup](https://www.meetup.com/de-DE/Hamburg-R-User-Group/events/244169901/) - Hamburg 07.12.2017  
